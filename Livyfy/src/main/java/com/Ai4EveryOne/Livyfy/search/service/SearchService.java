@@ -1,9 +1,15 @@
 package com.Ai4EveryOne.Livyfy.search.service;
 
+import com.Ai4EveryOne.Livyfy.chatbot.dto.AIRecommendationRequest;
 import com.Ai4EveryOne.Livyfy.listing.dto.ListingResponse;
 import com.Ai4EveryOne.Livyfy.listing.model.Listing;
 import com.Ai4EveryOne.Livyfy.listing.repository.ListingRepository;
 import com.Ai4EveryOne.Livyfy.search.dto.HybridSearchRequest;
+import com.Ai4EveryOne.Livyfy.transport.dto.TransportRequest;
+import com.Ai4EveryOne.Livyfy.transport.dto.TransportResponse;
+import com.Ai4EveryOne.Livyfy.transport.service.TransportServiceImpl;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,25 +18,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class SearchService {
 
-    private final ListingRepository repository;
+    private final ListingRepository listingRepository;
     private final RestTemplate restTemplate;
+    private final TransportServiceImpl transportService;
 
-    public SearchService(ListingRepository repository, RestTemplate restTemplate) {
-        this.repository = repository;
-        this.restTemplate = restTemplate;
-    }
+
+
 
     public List<ListingResponse> hybridSearch(HybridSearchRequest request) {
 
         // 🔹 STEP 1: DB FILTER
-        List<Listing> listings = repository.findAll(); // later optimize
+        List<Listing> listings = listingRepository.findAll(); // later optimize
 
         List<Listing> filtered = listings.stream()
                 .filter(l -> request.location == null || l.getLocation().equalsIgnoreCase(request.location))
@@ -94,5 +101,46 @@ public class SearchService {
         res.isVerified = listing.isVerified();
         res.ownerName = listing.getOwnerName();
         return res;
+    }
+
+    public AIRecommendationRequest buildAIRequest(String query) {
+
+        List<Listing> listings = listingRepository.findAll();
+
+        List<AIRecommendationRequest.ListingData> enriched = new ArrayList<>();
+
+        for (Listing listing : listings) {
+
+            // call transport service
+            TransportRequest tr = new TransportRequest();
+            tr.setWorkLat(22.5726);
+            tr.setWorkLng(88.3639);
+
+            List<TransportResponse> commute =
+                    transportService.getCommuteOptions(tr);
+
+            // match listing
+            for (TransportResponse t : commute) {
+                if (t.getListingId().equals(listing.getId())) {
+
+                    AIRecommendationRequest.ListingData data =
+                            new AIRecommendationRequest.ListingData();
+
+                    data.setId(listing.getId());
+                    data.setTitle(listing.getTitle());
+                    data.setPrice( listing.getPrice());
+                    data.setDistanceKm(t.getDistanceKm());
+                    data.setDurationMinutes(t.getDurationMinutes());
+
+                    enriched.add(data);
+                }
+            }
+        }
+
+        AIRecommendationRequest req = new AIRecommendationRequest();
+        req.setQuery(query);
+        req.setListings(enriched);
+
+        return req;
     }
 }

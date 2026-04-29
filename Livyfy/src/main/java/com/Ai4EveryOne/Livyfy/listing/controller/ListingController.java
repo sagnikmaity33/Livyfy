@@ -60,7 +60,7 @@ public class ListingController {
     @GetMapping("/search")
     public ApiResponse<List<ListingResponse>> search(
             @RequestParam String location,
-            @RequestParam int maxPrice,
+            @RequestParam Double maxPrice,
             @RequestParam(defaultValue = "true") boolean verified
     ) {
         return new ApiResponse<>(

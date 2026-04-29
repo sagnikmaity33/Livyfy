@@ -1,8 +1,5 @@
 package com.Ai4EveryOne.Livyfy.listing.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-
 public class ListingResponse {
     public Long id;
 
@@ -11,7 +8,7 @@ public class ListingResponse {
     public String description;
 
 
-    public int price;
+    public Double price;
     public String location;
     public String amenities;
     public boolean isVerified;

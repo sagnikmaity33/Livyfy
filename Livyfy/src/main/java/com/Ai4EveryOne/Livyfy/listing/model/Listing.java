@@ -18,7 +18,7 @@ public class Listing {
 
     private String title;
     private String description;
-    private int price;
+    private Double price;
     private String location;
     private String amenities;
     private boolean isVerified = false;
@@ -42,4 +42,8 @@ public class Listing {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+
+    private Double latitude;
+    private Double longitude;
 }

@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
 
 
 @Service
@@ -40,7 +39,7 @@ public class ListingService {
         Listing listing = new Listing();
         listing.setTitle(request.title);
         listing.setDescription(request.description);
-        listing.setPrice(request.price);
+        listing.setPrice((double) request.price);
         listing.setLocation(request.location);
         listing.setAmenities(request.amenities);
         listing.setOwnerName(request.ownerName);
@@ -117,7 +116,7 @@ public class ListingService {
         return r;
     }
 
-    public List<ListingResponse> search(String location, int maxPrice, boolean verified) {
+    public List<ListingResponse> search(String location, Double maxPrice, boolean verified) {
 
         log.info("Searching listings: location={}, price={}, verified={}",
                 location, maxPrice, verified);

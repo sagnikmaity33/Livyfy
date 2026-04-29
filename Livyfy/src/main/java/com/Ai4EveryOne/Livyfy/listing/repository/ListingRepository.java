@@ -9,7 +9,7 @@ import java.util.List;
 public interface ListingRepository extends JpaRepository<Listing, Long> {
     List<Listing> findByLocationContainingIgnoreCaseAndPriceLessThanEqualAndIsVerified(
             String location,
-            int price,
+            Double price,
             boolean isVerified
     );
 }

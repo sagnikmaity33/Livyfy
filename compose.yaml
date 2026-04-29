@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-
   backend:
     build: ./Livyfy
     ports:
@@ -23,12 +20,18 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
-  ai-service:
+  ai-service:  # ← MOVED TO CORRECT LEVEL (under services)
     build: ./ai-service
     ports:
       - "8000:8000"
     volumes:
       - chroma_data:/data
-volumes:
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+volumes:  # ← SINGLE volumes block at end
+  postgres_data:
   chroma_data:
