@@ -1,2 +1,15 @@
-.env
-node_modules
+# Frontend
+livyfy-frontend/node_modules/
+livyfy-frontend/dist/
+livyfy-frontend/build/
+
+# Backend AI
+ai-service/venv/
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/.env
+ai-service/.pytest_cache/
+
+# Global
+**/.DS_Store
+**/*.log
