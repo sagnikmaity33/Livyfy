@@ -8,6 +8,7 @@ import java.util.List;
 public class AIRecommendationRequest {
 
     private String query;
+    private String previousContext;
 
     private List<ListingData> listings;
 

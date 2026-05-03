@@ -7,7 +7,12 @@ from dotenv import load_dotenv
 import os
 import numpy as np
 import json
-from openai import OpenAI  # pip install openai
+import re
+from openai import OpenAI  
+from typing import TypedDict, Dict
+from app.graph.debate_graph import build_graph
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, status
 
 load_dotenv()
 
@@ -18,6 +23,8 @@ client_llm = OpenAI(
 )
 
 app = FastAPI()
+
+graph = build_graph()
 
 # ChromaDB & Model init
 client = chromadb.Client(
@@ -45,6 +52,39 @@ class AIRequest(BaseModel):
 class AIRecommendationRequest(BaseModel):  # MISSING CLASS ✅
     query: str
     listings: List[ListingData]
+    previousContext: str | None = None
+    
+    
+
+
+class DebateState(TypedDict):
+    query: str
+    listings: list
+    votes: Dict[int, float]
+    reasoning: Dict[str, dict]
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "AI Housing Recommender",
+        "endpoints": {
+            "recommend": "POST /recommend",
+            "query": "POST /query",
+            "add": "POST /add",
+            "rank": "POST /rank"
+        },
+        "chromadb": "connected" if client else "error",
+        "openrouter": "ready",
+        "timestamp": "2026-05-02T11:06:00Z"
+    }
+
+@app.get("/healthz")
+async def healthz():
+    """Kubernetes-style health check (minimal)"""
+    return {"status": "ok"}
 
 @app.post("/add")
 def add_listing(item: ListingItem):
@@ -71,88 +111,119 @@ def rank_listings(data: dict):
     ranked = [doc for _, doc in sorted(zip(scores, documents), reverse=True)]
     return {"results": ranked}
 
-def build_prompt(req: AIRecommendationRequest):
+
+def build_prompt(req: AIRecommendationRequest, context: str = ""):
+    """
+    Generate structured JSON recommendations for Kolkata PG search
+    """
     listings_text = "\n".join([
-        f"ID: {l.id}, Name: {l.title}, Price: ₹{l.price}, Distance: {l.distanceKm}km, Commute: {int(l.durationMinutes)}min"
+        f"ID: {l.id}, Name: '{l.title}', Price: ₹{l.price}, Distance: {l.distanceKm}km, Commute: {int(l.durationMinutes)}min"
         for l in req.listings
     ])
     
-    return f"""
-You are a Kolkata housing expert. Recommend TOP 3 PGs for: "{req.query}"
+    context_part = f"Previous context: {context}" if context else "New conversation"
+    
+    return f"""[STRICT JSON INSTRUCTIONS]
+You are a Kolkata PG expert. Return ONLY clean JSON object. NO markdown, NO ```json, NO extra text.
 
-Available options:
+User query: "{req.query}"
+{context_part}
+
+Available PGs:
 {listings_text}
 
-RULES:
-- Pick 3 DIFFERENT listings (no repeats)
-- Prioritize: low price + short commute + good location
-- Mention Kolkata advantages (metro, bus, airport connectivity)
+RECOMMEND TOP 3 DIFFERENT listings prioritizing:
+1. Price (cheapest first)
+2. Commute time (<20min preferred) 
+3. Airport/metro connectivity
+4. Kolkata area advantages (bus, trains, markets)
 
-RETURN **ONLY** valid JSON (no other text):
+JSON FORMAT (exact):
 {{
   "recommendations": [
     {{
-      "id": listing_id,
-      "title": "exact listing name", 
-      "reason": "short practical reason (₹price, Xkm, Ymin commute, area advantage)",
-      "price": price_number,
-      "distanceKm": distance_number,
-      "durationMinutes": commute_minutes
+      "id": INT_FROM_LISTING,
+      "title": "EXACT listing name from list",
+      "reason": "₹price + Xkm + Ymin commute + Kolkata connectivity (metro/bus/market)",
+      "price": NUMBER,
+      "distanceKm": NUMBER,
+      "durationMinutes": NUMBER
     }}
   ]
 }}
 
-Example:
+EXAMPLE OUTPUT (copy this format):
 {{
   "recommendations": [
-    {{"id": 2, "title": "Dum Dum PG", "reason": "₹5000, 5km to airport, 15min commute via metro", "price": 5000, "distanceKm": 5, "durationMinutes": 15}}
+    {{
+      "id": 2,
+      "title": "Dum Dum PG",
+      "reason": "₹5000 + 5km airport + 15min metro from Dum Dum station",
+      "price": 5000,
+      "distanceKm": 5,
+      "durationMinutes": 15
+    }}
   ]
 }}
 """
 
 
-@app.post("/recommend")
-def recommend(req: AIRecommendationRequest):
-    prompt = build_prompt(req)
-    completion = client_llm.chat.completions.create(
-        model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",  # ✅ FREE MODEL (no credit card)
-        # Alternative free models:
-        # "nvidia/llama-3.1-nemotron-70b-instruct:free"
-        # "qwen/qwen2.5-coder-7b-instruct:free" 
-        messages=[
-            {"role": "system", "content": "You are a helpful housing assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.7
-    )
-    return {"result": completion.choices[0].message.content}
-
 
 @app.post("/recommend")
 def recommend(req: AIRecommendationRequest):
-    prompt = build_prompt(req)
+    context = req.previousContext or ""
+    prompt = build_prompt(req, context)
     
     completion = client_llm.chat.completions.create(
         model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        messages=[
-            {"role": "system", "content": "You are a precise JSON generator. Return ONLY valid JSON."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.1  # Lower for structured output
+        messages=[{
+                "role": "system", 
+                "content": "Kolkata PG expert. Return ONLY clean JSON object."
+            },
+            {
+                "role": "user", 
+                "content": prompt
+            }],  # Your messages
+        temperature=0.1
     )
     
-    # Parse & validate JSON
+    raw_content = completion.choices[0].message.content
+    
+    # ✅ EXTRACT & CLEAN JSON from escaped string
     try:
-        result = json.loads(completion.choices[0].message.content)
-        return result  # Returns structured recommendations
-    except json.JSONDecodeError:
+        # Remove newlines/backslashes, find JSON object
+        cleaned = re.sub(r'\\n|\\', '', raw_content).strip()
+        if cleaned.startswith('{'):
+            result = json.loads(cleaned)
+        else:
+            # Fallback parsing
+            json_match = re.search(r'\{.*\}', raw_content, re.DOTALL)
+            result = json.loads(json_match.group()) if json_match else {}
+        
+        return result
+    except:
+        # Ultimate fallback
         return {
             "recommendations": [{
                 "id": req.listings[0].id,
                 "title": req.listings[0].title,
-                "reason": "Fallback: Best price-to-distance ratio",
+                "reason": "Best option based on price and location",
                 "price": req.listings[0].price,
                 "distanceKm": req.listings[0].distanceKm,
                 "durationMinutes": req.listings[0].durationMinutes
             }]
         }
+        
+@app.post("/debate-ai")
+async def debate_ai(req: AIRecommendationRequest):
+
+    state = {
+        "query": req.query,
+        "listings": [l.model_dump() for l in req.listings],
+        "votes": {},
+        "reasoning": {}
+    }
+
+    result = await graph.ainvoke(state)
+
+    return result        

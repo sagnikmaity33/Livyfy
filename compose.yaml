@@ -1,15 +1,55 @@
+# services:
+#   backend:
+#     build: ./Livyfy
+#     ports:
+#       - "8080:8080"
+#     depends_on:
+#       - db
+#       - ai-service
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/housing_db
+#       SPRING_DATASOURCE_USERNAME: postgres
+#       SPRING_DATASOURCE_PASSWORD: password
+
+#   db:
+#     image: postgres:15
+#     restart: always
+#     environment:
+#       POSTGRES_DB: housing_db
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: password
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+#   ai-service:  
+#     build: ./ai-service
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - chroma_data:/data
+#     environment:
+#       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+# volumes:  
+#   postgres_data:
+#   chroma_data:
+
+
 services:
   backend:
     build: ./Livyfy
     ports:
       - "8080:8080"
     depends_on:
-      - db
-      - ai-service
+      - db  # ← Remove ai-service dependency
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/housing_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: password
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   db:
     image: postgres:15
@@ -23,15 +63,5 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  ai-service:  # ← MOVED TO CORRECT LEVEL (under services)
-    build: ./ai-service
-    ports:
-      - "8000:8000"
-    volumes:
-      - chroma_data:/data
-    environment:
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-
-volumes:  # ← SINGLE volumes block at end
+volumes:
   postgres_data:
-  chroma_data:

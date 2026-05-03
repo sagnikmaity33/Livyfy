@@ -1,6 +1,7 @@
 package com.Ai4EveryOne.Livyfy.chatbot.service;
 
 import com.Ai4EveryOne.Livyfy.chatbot.dto.AIRecommendationRequest;
+import com.Ai4EveryOne.Livyfy.chatbot.dto.DebateResponse;
 import com.Ai4EveryOne.Livyfy.listing.model.Listing;
 import com.Ai4EveryOne.Livyfy.listing.repository.ListingRepository;
 import com.Ai4EveryOne.Livyfy.transport.dto.TransportRequest;
@@ -21,7 +22,7 @@ public class AIService {
     private final TransportService transportService;
     private final RestTemplate restTemplate;
 
-    public Object getRecommendations(String query) {
+    public Object getRecommendations(String query, String previousContext) {
 
         // Step 1: fetch listings
         List<Listing> listings = listingRepository.findAll();
@@ -70,10 +71,19 @@ public class AIService {
         AIRecommendationRequest req = new AIRecommendationRequest();
         req.setQuery(query);
         req.setListings(enriched);
-
+        req.setPreviousContext(previousContext);
         // Step 6: call AI service
-        String url = "http://ai-service:8000/recommend";
+        String url = "http://127.0.0.1/8:8000/recommend";
 
         return restTemplate.postForObject(url, req, Object.class);
     }
+    public Object debateAI(AIRecommendationRequest request) {
+
+        return restTemplate.postForObject(
+                "http://127.0.0.1/8:8000/debate-ai",
+                request,
+                Object.class
+        );
+    }
+
 }

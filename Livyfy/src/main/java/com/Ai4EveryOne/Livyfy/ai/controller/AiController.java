@@ -2,6 +2,7 @@ package com.Ai4EveryOne.Livyfy.ai.controller;
 
 import com.Ai4EveryOne.Livyfy.ai.dto.AiRequest;
 import com.Ai4EveryOne.Livyfy.ai.service.AiService;
+import com.Ai4EveryOne.Livyfy.chatbot.dto.AIRecommendationRequest;
 import com.Ai4EveryOne.Livyfy.common.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,4 +28,9 @@ public class AiController {
     public String test() {
         return "AI controller working";
     }
+//
+//    @PostMapping("/debate")
+//    public ApiResponse<?> debate(@RequestBody AIRecommendationRequest req) {
+//        return ApiResponse.success(service.debateAI(req));
+//    }
 }

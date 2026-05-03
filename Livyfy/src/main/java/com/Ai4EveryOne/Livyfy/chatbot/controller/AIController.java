@@ -1,5 +1,7 @@
 package com.Ai4EveryOne.Livyfy.chatbot.controller;
 
+import com.Ai4EveryOne.Livyfy.chatbot.dto.AIRecommendationRequest;
+import com.Ai4EveryOne.Livyfy.chatbot.dto.ChatRequest;
 import com.Ai4EveryOne.Livyfy.chatbot.service.AIService;
 
 import com.Ai4EveryOne.Livyfy.common.ApiResponse;
@@ -14,10 +16,23 @@ public class AIController {
     private final AIService aiService;
 
     @PostMapping("/recommend")
-    public ApiResponse<?> recommend(@RequestParam String query) {
+    public ApiResponse<?> recommend(@RequestBody ChatRequest request) {
         return ApiResponse.success(
                 "AI recommendations",
-                aiService.getRecommendations(query)
+                aiService.getRecommendations(
+                        request.getMessage(),
+                        request.getPreviousContext()
+                )
+        );
+    }
+
+    @PostMapping("/debate")
+    public ApiResponse<?> debate(@RequestBody AIRecommendationRequest req) {
+        return ApiResponse.success(
+                "AI debate result",
+                aiService.debateAI(req)
         );
     }
 }
+
+
