@@ -9,6 +9,7 @@ import com.Ai4EveryOne.Livyfy.transport.dto.TransportResponse;
 import com.Ai4EveryOne.Livyfy.transport.service.TransportService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +22,9 @@ public class AIService {
     private final ListingRepository listingRepository;
     private final TransportService transportService;
     private final RestTemplate restTemplate;
+
+
+    private String aiServiceUrl;
 
     public Object getRecommendations(String query, String previousContext) {
 
@@ -73,14 +77,14 @@ public class AIService {
         req.setListings(enriched);
         req.setPreviousContext(previousContext);
         // Step 6: call AI service
-        String url = "http://127.0.0.1/8:8000/recommend";
+        String url = "http://ai-service:8000/recommend";
 
         return restTemplate.postForObject(url, req, Object.class);
     }
     public Object debateAI(AIRecommendationRequest request) {
 
         return restTemplate.postForObject(
-                "http://127.0.0.1/8:8000/debate-ai",
+                "http://ai-service:8000/debate-ai",
                 request,
                 Object.class
         );
