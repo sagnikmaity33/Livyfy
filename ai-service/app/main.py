@@ -226,4 +226,8 @@ async def debate_ai(req: AIRecommendationRequest):
 
     result = await graph.ainvoke(state)
 
-    return result        
+    return {
+    "votes": result.get("votes", {}),
+    "reasoning": result.get("reasoning", {}),
+    "final": result.get("final", {})
+} 
