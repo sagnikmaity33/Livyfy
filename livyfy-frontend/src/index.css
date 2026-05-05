@@ -1,49 +1,53 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
-
 @import "tailwindcss";
 
-
-
-/* 🌙 Dark Theme Base */
 :root {
-  --bg: #0f172a;
-  --card: rgba(255, 255, 255, 0.05);
-  --border: rgba(255, 255, 255, 0.08);
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --accent: #3b82f6;
+  --bg: #070707;
+  --card: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 215, 120, 0.18);
+  --gold: #f5c542;
+  --text: #f8fafc;
 }
 
-/* Apply globally */
 body {
-  background: radial-gradient(
-      circle at 20% 20%,
-      rgba(59, 130, 246, 0.15),
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 80% 0%,
-      rgba(168, 85, 247, 0.15),
-      transparent 40%
-    ),
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(245, 197, 66, 0.16), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.07), transparent 25%),
     var(--bg);
-
   color: var(--text);
   font-family: system-ui, sans-serif;
 }
 
-
-
-/* Glass Card */
 .glass {
   background: var(--card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--border);
 }
 
-/* Smooth transitions */
 .smooth {
   transition: all 0.25s ease;
+}
+
+.gold-text {
+  color: var(--gold);
+}
+
+.gold-btn {
+  background: linear-gradient(135deg, #f5c542, #d69b16);
+  color: #111;
+  font-weight: 600;
+}
+
+.gold-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(245, 197, 66, 0.25);
+}
+
+.float-house {
+  animation: floatHouse 3s ease-in-out infinite;
+}
+
+@keyframes floatHouse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
