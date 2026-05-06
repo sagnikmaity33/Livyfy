@@ -19,7 +19,7 @@ function Navbar() {
         Home
         </Link>
 
-       <Link to="/chatbot" className="text-gray-300 hover:text-yellow-300 smooth">
+       <Link to="/chat" className="text-gray-300 hover:text-yellow-300 smooth">
         AI Chat
         </Link>
 
@@ -27,7 +27,7 @@ function Navbar() {
         My Bookings
         </Link>
 
-        <Link to="/owner/bookings" className="text-gray-300 hover:text-yellow-300 smooth">
+        <Link to="/bookings" className="text-gray-300 hover:text-yellow-300 smooth">
         Owner Panel
         </Link>
 

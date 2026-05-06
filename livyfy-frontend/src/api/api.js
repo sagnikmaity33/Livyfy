@@ -4,34 +4,35 @@ const API = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-export const getListings = () => API.get("/listings");
-
-export const getListingById = (id) => API.get(`/listings/${id}`);
-
+// 🔍 SEARCH
 export const hybridSearch = (payload) =>
   API.post("/search/hybrid", payload);
 
-export const aiQuery = (query) =>
-  API.post("/ai/query", { query });
+// 🤖 AI
+export const aiDebate = (payload) =>
+  API.post("/ai/debate", payload);
 
-export const chatbotQuery = (message) =>
-  API.post("/ai/query", { query: message });
-// ================= BOOKINGS =================
+// 🏠 LISTING
+export const getListingById = (id) =>
+  API.get(`/listings/${id}`);
 
+// 📦 BOOKINGS
 export const createBooking = (listingId) =>
   API.post("/bookings", {
     listingId,
+    userId: 101,
     message: "Interested in this PG",
   });
 
 export const getMyBookings = () =>
-  API.get("/bookings/my");
+  API.get("/bookings/user/101");
 
-export const getOwnerBookings = () =>
-  API.get("/bookings/owner");
+// 🤖 CHAT
+export const chatbotQuery = (message) =>
+  API.post("/chat", {
+    message,
+    previousContext: "",
+  });
 
-export const approveBooking = (bookingId) =>
-  API.patch(`/bookings/${bookingId}/approve`);
-
-export const rejectBooking = (bookingId) =>
-  API.patch(`/bookings/${bookingId}/reject`);
+export const getListings = () =>
+  API.get("/listings");

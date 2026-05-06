@@ -13,12 +13,16 @@ function ListingDetails() {
       .catch((err) => console.error(err));
   }, [id]);
 
-  const handleBooking = () => {
-    alert(
-      "Booking request feature is ready in UI. Backend approval flow will be connected when booking APIs are added."
-    );
-  };
-
+const handleBooking = async () => {
+  try {
+    await createBooking(id);
+    alert("Booking request sent!");
+    navigate("/my-bookings");
+  } catch (err) {
+    console.error(err);
+    alert("Booking failed");
+  }
+};
   if (!listing) {
     return (
       <div>
