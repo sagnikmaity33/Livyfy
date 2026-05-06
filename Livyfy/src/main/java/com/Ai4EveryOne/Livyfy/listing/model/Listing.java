@@ -24,7 +24,7 @@ public class Listing {
     private boolean isVerified = false;
 
     private String ownerName;
-
+    private Long ownerId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

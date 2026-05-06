@@ -8,6 +8,8 @@ import com.Ai4EveryOne.Livyfy.booking.model.Booking;
 import com.Ai4EveryOne.Livyfy.booking.model.BookingStatus;
 import com.Ai4EveryOne.Livyfy.booking.repository.BookingRepository;
 
+import com.Ai4EveryOne.Livyfy.listing.model.Listing;
+import com.Ai4EveryOne.Livyfy.listing.repository.ListingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final ListingRepository listingRepository;
 
     // 🔹 CREATE BOOKING
     @Override
@@ -30,8 +33,16 @@ public class BookingServiceImpl implements BookingService {
         booking.setListingId(request.getListingId());
         booking.setUserId(userId);
 
-        // TEMP → replace with listing fetch later
-        booking.setOwnerId(2L);
+        //  FETCH LISTING
+        Listing listing = listingRepository.findById(request.getListingId())
+                .orElseThrow(() -> new RuntimeException("Listing not found"));
+
+        if (!listing.isVerified()) {
+            throw new RuntimeException("Listing not verified");
+        }
+
+        // 🔥 REAL OWNER LINK
+        booking.setOwnerId(listing.getOwnerId());
 
         booking.setStatus(BookingStatus.PENDING);
         booking.setMessage(request.getMessage());
@@ -40,11 +51,8 @@ public class BookingServiceImpl implements BookingService {
         booking.setMoveInDate(request.getMoveInDate());
         booking.setCreatedAt(LocalDateTime.now());
 
-        Booking saved = bookingRepository.save(booking);
-
-        return mapToResponse(saved);
+        return mapToResponse(bookingRepository.save(booking));
     }
-
     // 🔹 UPDATE STATUS
     @Override
     public BookingResponse updateStatus(Long bookingId, BookingStatus status, Long ownerId) {
@@ -54,7 +62,7 @@ public class BookingServiceImpl implements BookingService {
 
         // OWNER CHECK
         if (!booking.getOwnerId().equals(ownerId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("You are not the owner of this listing");
         }
 
         // ONLY PENDING CAN CHANGE

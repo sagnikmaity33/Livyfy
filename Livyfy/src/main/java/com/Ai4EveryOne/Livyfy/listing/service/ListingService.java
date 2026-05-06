@@ -34,7 +34,7 @@ public class ListingService {
         this.repository = repository;
     }
 
-    public ListingResponse createListing(ListingRequest request) {
+    public ListingResponse createListing(ListingRequest request, Long ownerId) {
 
         Listing listing = new Listing();
         listing.setTitle(request.title);
@@ -42,6 +42,7 @@ public class ListingService {
         listing.setPrice((double) request.price);
         listing.setLocation(request.location);
         listing.setAmenities(request.amenities);
+        listing.setOwnerId(ownerId);
         listing.setOwnerName(request.ownerName);
 
         Listing saved = repository.save(listing);
