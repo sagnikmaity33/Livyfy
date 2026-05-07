@@ -5,8 +5,7 @@ const API = axios.create({
 });
 
 // 🔍 SEARCH
-export const hybridSearch = (payload) =>
-  API.post("/ai/recommend", payload);
+
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
@@ -29,7 +28,8 @@ export const verifyListing = (id) =>
   API.patch(`/listings/${id}/verify?adminKey=secret123`);
 
 // SEARCH / AI
-export const hybridSearch = (payload) => API.post("/search/hybrid", payload);
+export const hybridSearch = (payload) =>
+  API.post("/ai/recommend", payload);
 export const aiQuery = (query) => API.post("/ai/query", { query });
 export const chatbotQuery = (message) => API.post("/ai/query", { query: message });
 
