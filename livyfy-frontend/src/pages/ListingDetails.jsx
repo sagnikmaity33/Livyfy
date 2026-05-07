@@ -1,11 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getListingById } from "../api/api";
+import { getListingById, createBooking } from "../api/api";
 
 function ListingDetails() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
+  const [message, setMessage] = useState("Interested in this PG");
+  const [contactPhone, setContactPhone] = useState("");
 
   useEffect(() => {
     getListingById(id)
@@ -13,16 +15,30 @@ function ListingDetails() {
       .catch((err) => console.error(err));
   }, [id]);
 
-const handleBooking = async () => {
-  try {
-    await createBooking(id);
-    alert("Booking request sent!");
-    navigate("/my-bookings");
-  } catch (err) {
-    console.error(err);
-    alert("Booking failed");
-  }
-};
+  const handleBooking = async () => {
+    const role = localStorage.getItem("role");
+    const email = localStorage.getItem("email");
+
+    if (role !== "USER") {
+      alert("Only users can create bookings. Please login as USER.");
+      return;
+    }
+
+    try {
+      await createBooking({
+        listingId: Number(id),
+        message,
+        contactEmail: email,
+        contactPhone,
+      });
+
+      alert("Booking request sent to owner!");
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Booking failed");
+    }
+  };
+
   if (!listing) {
     return (
       <div>
@@ -43,48 +59,45 @@ const handleBooking = async () => {
           </div>
 
           <div className="p-6">
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <h2 className="text-3xl font-bold">{listing.title}</h2>
+            <h2 className="text-3xl font-bold">{listing.title}</h2>
 
-                <p className="text-gray-400 mt-2">
-                  📍 {listing.location}
-                </p>
-              </div>
-
-              {listing.verified && (
-                <span className="text-green-300 text-sm bg-green-400/10 px-4 py-2 rounded-full">
-                  ✔ Verified
-                </span>
-              )}
-            </div>
-
-            <p className="text-yellow-300 text-3xl font-bold mt-6">
+            <p className="text-yellow-300 text-3xl font-bold mt-4">
               ₹{listing.price}
             </p>
 
-            {listing.description && (
-              <p className="text-gray-400 mt-4 leading-relaxed">
-                {listing.description}
-              </p>
+            <p className="text-gray-400 mt-2">📍 {listing.location}</p>
+
+            {listing.verified && (
+              <p className="text-green-300 mt-3">✔ Verified listing</p>
             )}
 
-            <div className="glass p-4 rounded-2xl mt-6">
-              <p className="text-yellow-300 text-sm font-medium">
-                Booking Flow
-              </p>
-              <p className="text-gray-400 text-sm mt-2">
-                Request booking without sharing owner phone number. Owner will
-                approve or reject the request from their panel.
-              </p>
-            </div>
+            <p className="text-gray-400 mt-4">{listing.description}</p>
 
-            <button
-              onClick={handleBooking}
-              className="gold-btn mt-6 px-6 py-3 rounded-full smooth"
-            >
-              Request Booking
-            </button>
+            <div className="glass p-5 rounded-2xl mt-6 space-y-4">
+              <p className="text-yellow-300 font-semibold">
+                Request Booking
+              </p>
+
+              <textarea
+                className="w-full bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+
+              <input
+                className="w-full bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
+                placeholder="Contact phone"
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+              />
+
+              <button
+                onClick={handleBooking}
+                className="gold-btn px-6 py-3 rounded-full smooth"
+              >
+                Send Booking Request
+              </button>
+            </div>
           </div>
         </div>
       </div>

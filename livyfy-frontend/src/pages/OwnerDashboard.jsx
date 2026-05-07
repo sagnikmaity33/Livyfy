@@ -3,8 +3,7 @@ import Navbar from "../components/Navbar";
 import {
   createListing,
   getOwnerBookings,
-  approveBooking,
-  rejectBooking,
+  updateBookingStatus,
 } from "../api/api";
 
 function OwnerDashboard() {
@@ -13,12 +12,11 @@ function OwnerDashboard() {
 
   const [listing, setListing] = useState({
     title: "",
-    location: "",
-    price: "",
-    food: "YES",
-    safety: "SAFE",
     description: "",
-    imageUrl: "",
+    price: "",
+    location: "",
+    amenities: "",
+    ownerName: "",
   });
 
   const loadBookings = () => {
@@ -34,52 +32,44 @@ function OwnerDashboard() {
     loadBookings();
   }, []);
 
-  const handleApprove = async (id) => {
+  const handleAccept = async (id) => {
     try {
-      await approveBooking(id);
+      await updateBookingStatus(id, "ACCEPTED");
       loadBookings();
     } catch (err) {
-      console.error(err);
-      alert("Approve failed");
+      alert(err?.response?.data?.message || "Accept failed");
     }
   };
 
   const handleReject = async (id) => {
     try {
-      await rejectBooking(id);
+      await updateBookingStatus(id, "REJECTED");
       loadBookings();
     } catch (err) {
-      console.error(err);
-      alert("Reject failed");
+      alert(err?.response?.data?.message || "Reject failed");
     }
   };
 
   const handleSubmitListing = async () => {
     try {
       await createListing({
-        title: listing.title,
-        location: listing.location,
+        ...listing,
         price: Number(listing.price),
-        food: listing.food,
-        safety: listing.safety,
-        description: listing.description,
-        imageUrl: listing.imageUrl,
       });
 
-      alert("Listing submitted successfully!");
+      alert("Listing created successfully!");
 
       setListing({
         title: "",
-        location: "",
-        price: "",
-        food: "YES",
-        safety: "SAFE",
         description: "",
-        imageUrl: "",
+        price: "",
+        location: "",
+        amenities: "",
+        ownerName: "",
       });
     } catch (err) {
       console.error(err);
-      alert("Listing submission failed");
+      alert(err?.response?.data?.message || "Listing create failed");
     }
   };
 
@@ -90,35 +80,23 @@ function OwnerDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="glass p-6 rounded-3xl mb-8">
           <p className="text-yellow-300 text-sm">Owner Control Panel</p>
-
-          <h1 className="text-4xl font-bold mt-2">
-            Manage your PG business 🏠
-          </h1>
-
+          <h1 className="text-4xl font-bold mt-2">Manage your PG business 🏠</h1>
           <p className="text-gray-400 mt-3">
-            Approve booking requests and publish verified stays for students.
+            Create listings and manage student booking requests.
           </p>
         </div>
 
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => setActiveTab("bookings")}
-            className={
-              activeTab === "bookings"
-                ? "gold-btn px-5 py-2 rounded-full"
-                : "glass px-5 py-2 rounded-full"
-            }
+            className={activeTab === "bookings" ? "gold-btn px-5 py-2 rounded-full" : "glass px-5 py-2 rounded-full"}
           >
             Booking Requests
           </button>
 
           <button
             onClick={() => setActiveTab("add")}
-            className={
-              activeTab === "add"
-                ? "gold-btn px-5 py-2 rounded-full"
-                : "glass px-5 py-2 rounded-full"
-            }
+            className={activeTab === "add" ? "gold-btn px-5 py-2 rounded-full" : "glass px-5 py-2 rounded-full"}
           >
             Add PG / Flat
           </button>
@@ -137,7 +115,7 @@ function OwnerDashboard() {
                 <div key={booking.id} className="glass p-6 rounded-3xl">
                   <div className="flex justify-between">
                     <h3 className="text-xl font-semibold">
-                      {booking.listingTitle || "PG Booking Request"}
+                      Listing #{booking.listingId}
                     </h3>
 
                     <span className="text-yellow-300 text-sm">
@@ -146,20 +124,24 @@ function OwnerDashboard() {
                   </div>
 
                   <p className="text-gray-400 mt-3">
-                    Requested by: {booking.userEmail || booking.userName || "Student"}
+                    Message: {booking.message || "Interested"}
                   </p>
 
-                  <p className="text-gray-500 text-sm mt-2">
-                    Booking ID: {booking.id}
+                  <p className="text-gray-400 mt-2">
+                    Email: {booking.contactEmail || "N/A"}
                   </p>
 
-                  {(booking.status === "PENDING" || !booking.status) && (
+                  <p className="text-gray-400 mt-2">
+                    Phone: {booking.contactPhone || "N/A"}
+                  </p>
+
+                  {booking.status === "PENDING" && (
                     <div className="flex gap-3 mt-5">
                       <button
-                        onClick={() => handleApprove(booking.id)}
+                        onClick={() => handleAccept(booking.id)}
                         className="bg-green-400 text-black px-5 py-2 rounded-full font-semibold"
                       >
-                        Approve
+                        Accept
                       </button>
 
                       <button
@@ -179,80 +161,51 @@ function OwnerDashboard() {
         {activeTab === "add" && (
           <div className="glass p-6 rounded-3xl max-w-3xl">
             <p className="text-yellow-300 text-sm">Submit your property</p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              Add PG / Flat Details
-            </h2>
+            <h2 className="text-3xl font-bold mt-2">Add PG / Flat Details</h2>
 
             <div className="grid md:grid-cols-2 gap-4 mt-6">
               <input
                 className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                placeholder="PG / Flat title"
+                placeholder="Title"
                 value={listing.title}
-                onChange={(e) =>
-                  setListing({ ...listing, title: e.target.value })
-                }
+                onChange={(e) => setListing({ ...listing, title: e.target.value })}
               />
 
               <input
                 className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                placeholder="Address / Location"
+                placeholder="Location"
                 value={listing.location}
-                onChange={(e) =>
-                  setListing({ ...listing, location: e.target.value })
-                }
+                onChange={(e) => setListing({ ...listing, location: e.target.value })}
               />
 
               <input
                 type="number"
                 className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                placeholder="Monthly rent"
+                placeholder="Price"
                 value={listing.price}
-                onChange={(e) =>
-                  setListing({ ...listing, price: e.target.value })
-                }
+                onChange={(e) => setListing({ ...listing, price: e.target.value })}
               />
 
               <input
                 className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                placeholder="Image URL"
-                value={listing.imageUrl}
-                onChange={(e) =>
-                  setListing({ ...listing, imageUrl: e.target.value })
-                }
+                placeholder="Amenities: wifi,food,ac"
+                value={listing.amenities}
+                onChange={(e) => setListing({ ...listing, amenities: e.target.value })}
               />
 
-              <select
-                className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                value={listing.food}
-                onChange={(e) =>
-                  setListing({ ...listing, food: e.target.value })
-                }
-              >
-                <option value="YES">Food Available</option>
-                <option value="NO">No Food</option>
-              </select>
-
-              <select
-                className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
-                value={listing.safety}
-                onChange={(e) =>
-                  setListing({ ...listing, safety: e.target.value })
-                }
-              >
-                <option value="SAFE">Safe</option>
-                <option value="MODERATE">Moderate</option>
-                <option value="HIGH_SECURITY">High Security</option>
-              </select>
+              <input
+                className="bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none md:col-span-2"
+                placeholder="Owner name"
+                value={listing.ownerName}
+                onChange={(e) => setListing({ ...listing, ownerName: e.target.value })}
+              />
             </div>
 
             <textarea
               className="w-full bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none mt-4 min-h-32"
-              placeholder="Write bio / description about your PG..."
+              placeholder="Description"
               value={listing.description}
-              onChange={(e) =>
-                setListing({ ...listing, description: e.target.value })
-              }
+              onChange={(e) => setListing({ ...listing, description: e.target.value })}
             />
 
             <button

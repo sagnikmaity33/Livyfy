@@ -7,53 +7,36 @@ const API = axios.create({
 // 🔍 SEARCH
 export const hybridSearch = (payload) =>
   API.post("/ai/recommend", payload);
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
 
-// 🤖 AI
-export const aiDebate = (payload) =>
-  API.post("/ai/debate", payload);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-// 🏠 LISTING
-export const getListingById = (id) =>
-  API.get(`/listings/${id}`);
+  return config;
+});
 
-// 📦 BOOKINGS
-export const createBooking = (listingId) =>
-  API.post("/bookings", {
-    listingId,
-    userId: 101,
-    message: "Interested in this PG",
-  });
+// AUTH
+export const loginUser = (payload) => API.post("/auth/login", payload);
+export const signupUser = (payload) => API.post("/auth/signup", payload);
 
-export const getMyBookings = () =>
-  API.get("/bookings/user/101");
+// LISTINGS
+export const getListings = () => API.get("/listings");
+export const getListingById = (id) => API.get(`/listings/${id}`);
+export const createListing = (payload) => API.post("/listings", payload);
+export const verifyListing = (id) =>
+  API.patch(`/listings/${id}/verify?adminKey=secret123`);
 
-// 🤖 CHAT
-export const chatbotQuery = (message) =>
-  API.post("/chat", {
-    message,
-    previousContext: "",
-  });
+// SEARCH / AI
+export const hybridSearch = (payload) => API.post("/search/hybrid", payload);
+export const aiQuery = (query) => API.post("/ai/query", { query });
+export const chatbotQuery = (message) => API.post("/ai/query", { query: message });
 
-export const getListings = () =>
-  API.get("/listings");                                               
-// ================= AUTH =================
+// BOOKINGS
+export const createBooking = (payload) => API.post("/bookings", payload);
+export const getOwnerBookings = () => API.get("/bookings/owner");
+export const getUserBookings = () => API.get("/bookings/user");
 
-export const loginUser = (payload) =>
-  API.post("/auth/login", payload);
-
-export const signupUser = (payload) =>
-  API.post("/auth/signup", payload);
-// ================= OWNER =================
-
-export const createListing = (payload) =>
-  API.post("/listings", payload);
-
-// booking endpoints — change only here if backend names differ
-export const getOwnerBookings = () =>
-  API.get("/bookings/owner");
-
-export const approveBooking = (bookingId) =>
-  API.patch(`/bookings/${bookingId}/approve`);
-
-export const rejectBooking = (bookingId) =>
-  API.patch(`/bookings/${bookingId}/reject`);
+export const updateBookingStatus = (bookingId, status) =>
+  API.patch(`/bookings/${bookingId}/status`, { status });

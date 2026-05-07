@@ -1,48 +1,61 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getMyBookings } from "../api/api";
+import { getUserBookings } from "../api/api";
 
 function MyBookings() {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    getMyBookings().then((res) => {
-      setBookings(res.data.data || []);
-    });
+    getUserBookings()
+      .then((res) => setBookings(res.data.data || []))
+      .catch((err) => {
+        console.error(err);
+        setBookings([]);
+      });
   }, []);
 
   return (
     <div>
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h2 className="text-xl font-semibold mb-6">
-          My Bookings
-        </h2>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <p className="text-yellow-300 text-sm">Your booking status</p>
+        <h2 className="text-3xl font-bold mt-1 mb-6">My Bookings</h2>
 
         {bookings.length === 0 && (
-          <p className="text-gray-400">
-            No bookings yet.
-          </p>
+          <div className="glass p-6 rounded-3xl text-gray-400 text-center">
+            No booking requests yet.
+          </div>
         )}
 
-        {bookings.map((b) => (
-          <div key={b.bookingId} className="glass p-5 rounded-2xl mb-4">
-            <p>Listing ID: {b.listingId}</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {bookings.map((booking) => (
+            <div key={booking.id} className="glass p-5 rounded-3xl">
+              <h3 className="text-xl font-semibold">
+                Listing #{booking.listingId}
+              </h3>
 
-            <p
-              className={`mt-2 ${
-                b.status === "APPROVED"
-                  ? "text-green-400"
-                  : b.status === "REJECTED"
-                  ? "text-red-400"
-                  : "text-yellow-300"
-              }`}
-            >
-              Status: {b.status}
-            </p>
-          </div>
-        ))}
+              <p className="text-gray-400 mt-2">
+                Message: {booking.message || "Interested"}
+              </p>
+
+              <p className="mt-4">
+                Status:{" "}
+                <span
+                  className={
+                    booking.status === "ACCEPTED"
+                      ? "text-green-300"
+                      : booking.status === "REJECTED"
+                      ? "text-red-300"
+                      : "text-yellow-300"
+                  }
+                >
+                  {booking.status || "PENDING"}
+                </span>
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
