@@ -1,24 +1,88 @@
+
+
+
+
+
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
-import { chatbotQuery } from "../api/api";
+
+import {
+  aiRecommend,
+  aiDebate,
+} from "../api/api";
 
 function Chatbot() {
+  const navigate = useNavigate();
+
   const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
+
+  const [recommendations, setRecommendations] = useState([]);
+
+  const [debateData, setDebateData] = useState(null);
+
   const [loading, setLoading] = useState(false);
 
-  const sendMessage = async () => {
+  const [debateLoading, setDebateLoading] = useState(false);
+
+  // =========================
+  // AI RECOMMEND
+  // =========================
+
+  const handleAsk = async () => {
     if (!message.trim()) return;
 
-    setLoading(true);
     try {
-      const res = await chatbotQuery(message);
-      setReply(JSON.stringify(res.data.data, null, 2));
+      setLoading(true);
+
+      setDebateData(null);
+
+      const res = await aiRecommend({
+        message,
+        previousContext: "",
+      });
+
+      setRecommendations(
+        res.data.data.recommendations || []
+      );
     } catch (err) {
       console.error(err);
-      setReply("AI service unavailable. Please try again later.");
+      setRecommendations([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // =========================
+  // AI DEBATE
+  // =========================
+
+  const handleDebate = async () => {
+    try {
+      setDebateLoading(true);
+
+      const topListings = recommendations
+        .slice(0, 5)
+        .map((item) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          distanceKm: item.distanceKm,
+          durationMinutes: item.durationMinutes,
+        }));
+
+      const res = await aiDebate({
+        query: message,
+        previousContext: "",
+        listings: topListings,
+      });
+
+      setDebateData(res.data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDebateLoading(false);
     }
   };
 
@@ -27,146 +91,267 @@ function Chatbot() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        <section className="grid lg:grid-cols-[2fr_1fr] gap-6">
-          <div className="relative min-h-[580px] rounded-[32px] overflow-hidden bg-[#111] border border-yellow-400/20 shadow-xl">
+
+        {/* HERO */}
+        <section className="relative overflow-hidden rounded-[36px] border border-yellow-400/20 bg-[#111] p-10">
+
+          <div className="absolute inset-0 opacity-25">
             <img
-              src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1400&q=80"
-              alt="AI housing assistant"
-              className="absolute inset-0 w-full h-full object-cover opacity-45"
+              src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80"
+              alt=""
+              className="w-full h-full object-cover"
             />
+          </div>
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/30" />
+          <div className="relative z-10 max-w-4xl">
 
-            <div className="relative z-10 p-10 max-w-3xl">
-              <p className="text-yellow-400 font-semibold">
-                Livyfy AI Assistant
-              </p>
+            <p className="text-yellow-400 font-semibold">
+              Livyfy AI Housing Advisor
+            </p>
 
-              <h1 className="text-6xl font-bold mt-4 leading-tight">
-                Ask before you choose <br />
-                <span className="text-yellow-400">your stay.</span>
-              </h1>
+            <h1 className="text-6xl font-bold mt-4 leading-tight">
+              Ask AI before choosing
+              <br />
+              your next stay.
+            </h1>
 
-              <p className="text-gray-300 text-lg mt-5 max-w-xl">
-                Ask naturally about budget, food, safety, location, sharing rooms,
-                verified PGs and booking approval.
-              </p>
+            <p className="text-gray-300 text-lg mt-5 max-w-2xl">
+              Ask naturally about budget, safety, commute,
+              verified PGs, food, sharing rooms and student areas.
+            </p>
 
-              <div className="mt-10 bg-black/75 border border-yellow-400/20 rounded-3xl p-5 flex gap-4 shadow-2xl">
-                <input
-                  className="flex-1 bg-transparent outline-none text-gray-200"
-                  placeholder="Ask: safe PG under 7000 near college..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                />
+            {/* SEARCH BOX */}
+            <div className="mt-10 bg-black/80 border border-yellow-400/20 rounded-3xl p-5 flex gap-4 shadow-2xl">
 
-                <button
-                  onClick={sendMessage}
-                  className="bg-yellow-400 text-black px-8 py-4 rounded-2xl font-bold hover:bg-yellow-300 transition"
-                >
-                  Ask AI
-                </button>
+              <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleAsk()
+                }
+                placeholder="safe PG under 7000 near sector 5..."
+                className="flex-1 bg-transparent outline-none text-lg text-gray-200"
+              />
+
+              <button
+                onClick={handleAsk}
+                className="bg-yellow-400 text-black px-8 py-4 rounded-2xl font-bold hover:bg-yellow-300 transition"
+              >
+                Ask AI
+              </button>
+            </div>
+
+            {/* LOADING */}
+            {loading && (
+              <div className="mt-8 flex items-center gap-4">
+
+                <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center text-black font-bold animate-pulse">
+                  AI
+                </div>
+
+                <div>
+                  <p className="text-yellow-400 font-semibold">
+                    Livyfy AI is analyzing...
+                  </p>
+
+                  <p className="text-gray-400 text-sm mt-1">
+                    Checking budget, commute and verified stays
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* AI RECOMMENDATIONS */}
+        {recommendations.length > 0 && (
+          <section className="mt-12">
+
+            <div className="flex justify-between items-center">
+
+              <div>
+                <p className="text-yellow-400 font-semibold">
+                  AI Recommendations
+                </p>
+
+                <h2 className="text-4xl font-bold mt-2">
+                  Best matches for your needs
+                </h2>
               </div>
 
-              {loading && (
-                <div className="mt-6 flex items-center gap-3 text-yellow-400">
-                  <span className="text-3xl animate-bounce">🏠</span>
-                  <p className="animate-pulse">AI is thinking like a housing advisor...</p>
-                </div>
-              )}
-
-              {reply && (
-                <pre className="mt-6 bg-black/80 border border-yellow-400/20 rounded-3xl p-5 text-sm whitespace-pre-wrap text-gray-300 max-h-64 overflow-auto">
-                  {reply}
-                </pre>
+              {!debateData && (
+                <button
+                  onClick={handleDebate}
+                  className="bg-yellow-400 text-black px-6 py-3 rounded-full font-bold hover:bg-yellow-300 transition"
+                >
+                  {debateLoading
+                    ? "Analyzing..."
+                    : "✨ AI Compare"}
+                </button>
               )}
             </div>
-          </div>
 
-          <div className="grid gap-6">
-            <AiPhotoCard
-              title="Budget Match"
-              text="Ask for PGs under your monthly rent range."
-              emoji="💰"
-              img="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80"
-            />
+            {/* CARDS */}
+            <div className="grid md:grid-cols-3 gap-6 mt-8">
 
-            <AiPhotoCard
-              title="Safety Guidance"
-              text="Understand verified, safer and student-friendly options."
-              emoji="🛡️"
-              img="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80"
-            />
+              {recommendations.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-[#111] border border-yellow-400/20 rounded-[32px] overflow-hidden hover:scale-[1.02] transition"
+                >
+                  <div className="relative h-60">
 
-            <AiPhotoCard
-              title="Food & Comfort"
-              text="Ask about food, wifi, AC, sharing and daily comfort."
-              emoji="🍽️"
-              img="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80"
-            />
-          </div>
-        </section>
+                    <img
+                      src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
 
-        <section className="grid md:grid-cols-3 gap-6 mt-10">
-          <PromptChip text="PG under 6000 with food" setMessage={setMessage} />
-          <PromptChip text="Safe girls PG near college" setMessage={setMessage} />
-          <PromptChip text="Verified PG with wifi and AC" setMessage={setMessage} />
-        </section>
+                    <div className="absolute top-4 left-4 bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-full">
+                      AI Suggested
+                    </div>
+                  </div>
 
-        <section className="mt-16 rounded-[32px] bg-[#111] border border-yellow-400/20 p-10 text-center relative overflow-hidden">
-          <div className="absolute left-10 top-8 text-7xl opacity-10 animate-bounce">
-            🤖
-          </div>
-          <div className="absolute right-10 bottom-8 text-7xl opacity-10 animate-pulse">
-            🏡
-          </div>
+                  <div className="p-6">
 
-          <p className="text-yellow-400 font-semibold">Explainable AI</p>
-          <h2 className="text-4xl font-bold mt-3">
-            Not just answers. Housing decisions with reasons.
-          </h2>
-          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
-            Livyfy AI helps users understand why a PG fits their budget,
-            location, safety and comfort needs before they request booking.
-          </p>
-        </section>
+                    <div className="flex justify-between items-start gap-4">
+
+                      <div>
+                        <h3 className="text-2xl font-bold">
+                          {item.title}
+                        </h3>
+
+                        <p className="text-gray-400 mt-2 text-sm">
+                          {item.reason}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6 flex-wrap">
+
+                      <span className="bg-yellow-400/10 text-yellow-300 px-4 py-2 rounded-full text-sm">
+                        ₹ {item.price}
+                      </span>
+
+                      <span className="bg-white/5 text-gray-300 px-4 py-2 rounded-full text-sm">
+                        📍 {item.distanceKm} km
+                      </span>
+
+                      <span className="bg-white/5 text-gray-300 px-4 py-2 rounded-full text-sm">
+                        ⏱ {item.durationMinutes} mins
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        navigate(`/listing/${item.id}`)
+                      }
+                      className="mt-6 w-full bg-yellow-400 text-black py-3 rounded-2xl font-bold hover:bg-yellow-300 transition"
+                    >
+                      View Listing
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* AI DEBATE */}
+        {debateData && (
+          <section className="mt-14 bg-[#111] border border-yellow-400/20 rounded-[36px] p-10">
+
+            <p className="text-yellow-400 font-semibold">
+              Premium AI Multi-Agent Insights
+            </p>
+
+            <h2 className="text-5xl font-bold mt-3">
+              AI selected the strongest options
+            </h2>
+
+            <div className="grid md:grid-cols-2 gap-6 mt-10">
+
+              {debateData.final.best_choices.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-black border border-yellow-400/20 rounded-[32px] p-7"
+                >
+                  <div className="flex justify-between items-start">
+
+                    <div>
+                      <p className="text-yellow-400 font-semibold">
+                        🏆 Best Overall
+                      </p>
+
+                      <h3 className="text-3xl font-bold mt-2">
+                        {item.title}
+                      </h3>
+                    </div>
+
+                    <div className="bg-yellow-400 text-black px-5 py-3 rounded-2xl font-bold">
+                      {item.score}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-300 mt-5">
+                    {item.why_best}
+                  </p>
+
+                  {/* PROS */}
+                  <div className="mt-7">
+
+                    <p className="text-green-400 font-semibold">
+                      👍 Strengths
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 mt-3">
+
+                      {item.pros.map((pro, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-green-400/10 text-green-300 px-4 py-2 rounded-full text-sm"
+                        >
+                          {pro}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CONS */}
+                  <div className="mt-7">
+
+                    <p className="text-red-400 font-semibold">
+                      👎 Considerations
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 mt-3">
+
+                      {item.cons.map((con, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-red-400/10 text-red-300 px-4 py-2 rounded-full text-sm"
+                        >
+                          {con}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      navigate(`/listing/${item.id}`)
+                    }
+                    className="mt-8 w-full bg-yellow-400 text-black py-3 rounded-2xl font-bold hover:bg-yellow-300 transition"
+                  >
+                    Open Listing
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
-  );
-}
-
-function AiPhotoCard({ title, text, emoji, img }) {
-  return (
-    <div className="relative overflow-hidden rounded-[28px] bg-[#111] border border-yellow-400/20 min-h-[175px] shadow-lg hover:scale-[1.02] transition">
-      <img
-        src={img}
-        alt={title}
-        className="absolute inset-0 w-full h-full object-cover opacity-35"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/30" />
-
-      <div className="relative z-10 p-7">
-        <div className="text-5xl mb-4 animate-pulse">{emoji}</div>
-        <h3 className="text-3xl font-bold">{title}</h3>
-        <p className="text-gray-300 mt-3 max-w-xs">{text}</p>
-        <button className="mt-5 w-12 h-12 rounded-full bg-yellow-400 text-black text-xl font-bold">
-          →
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PromptChip({ text, setMessage }) {
-  return (
-    <button
-      onClick={() => setMessage(text)}
-      className="bg-[#111] border border-yellow-400/20 rounded-3xl p-5 text-left hover:scale-[1.02] transition"
-    >
-      <p className="text-yellow-400 text-sm">Try asking</p>
-      <h3 className="text-xl font-bold mt-2">{text}</h3>
-    </button>
   );
 }
 

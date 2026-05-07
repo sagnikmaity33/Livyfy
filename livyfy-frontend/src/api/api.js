@@ -27,11 +27,8 @@ export const createListing = (payload) => API.post("/listings", payload);
 export const verifyListing = (id) =>
   API.patch(`/listings/${id}/verify?adminKey=secret123`);
 
-// SEARCH / AI
 export const hybridSearch = (payload) =>
-  API.post("/ai/recommend", payload);
-export const aiQuery = (query) => API.post("/ai/query", { query });
-export const chatbotQuery = (message) => API.post("/ai/query", { query: message });
+  API.post("/search/hybrid", payload);
 
 // BOOKINGS
 export const createBooking = (payload) => API.post("/bookings", payload);
@@ -40,3 +37,14 @@ export const getUserBookings = () => API.get("/bookings/user");
 
 export const updateBookingStatus = (bookingId, status) =>
   API.patch(`/bookings/${bookingId}/status`, { status });
+
+
+
+
+
+// AI
+export const aiRecommend = (payload) =>
+  API.post("/ai/recommend", payload);
+
+export const aiDebate = (payload) =>
+  API.post("/ai/debate", payload);

@@ -6,9 +6,11 @@ function Home() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
+  // 🔍 SEARCH FLOW
   const handleSearch = () => {
     if (!query.trim()) return;
-    navigate("/ai", { state: { query } });
+
+    navigate(`/explore?query=${query}`)
   };
 
   return (
@@ -16,8 +18,11 @@ function Home() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
+
+        {/* HERO SECTION */}
         <section className="grid lg:grid-cols-[2fr_1fr] gap-6">
           <div className="relative min-h-[580px] rounded-[28px] overflow-hidden bg-white shadow-xl">
+
             <img
               src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80"
               alt="student housing"
@@ -31,52 +36,62 @@ function Home() {
                 AI-powered verified student housing
               </p>
 
-              <h1 className="text-6xl font-bold leading-tight">
+              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
                 Your second home <br />
                 in a new city.
               </h1>
 
-              <p className="text-xl mt-6 text-gray-700">
+              <p className="text-lg mt-6 text-gray-700 leading-relaxed">
                 Find safe, verified PGs with AI ranking, smart filters and owner approval.
               </p>
             </div>
 
-            <div className="absolute left-10 right-10 bottom-10 z-10 bg-white rounded-3xl p-5 shadow-2xl flex items-center gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-lg">Find in and around...</p>
+            {/* SEARCH BAR */}
+            <div className="absolute left-6 right-6 md:left-10 md:right-10 bottom-8 z-10 bg-white rounded-3xl p-4 md:p-5 shadow-2xl flex flex-col md:flex-row items-center gap-4">
+
+              <div className="flex-1 w-full">
+                <p className="font-semibold text-lg">
+                  Find in and around...
+                </p>
+
                 <input
-                  className="w-full outline-none text-gray-600 mt-1"
+                  className="w-full outline-none text-gray-600 mt-1 bg-transparent"
                   placeholder="Search PG near college, under 6000..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && handleSearch()
+                  }
                 />
               </div>
 
-              <button className="w-14 h-14 rounded-full bg-yellow-100 text-2xl">
+              <button className="w-14 h-14 rounded-full bg-yellow-100 text-2xl shrink-0">
                 📍
               </button>
 
               <button
                 onClick={handleSearch}
-                className="bg-yellow-400 hover:bg-yellow-300 px-8 py-4 rounded-2xl font-bold"
+                className="bg-yellow-400 hover:bg-yellow-300 transition px-8 py-4 rounded-2xl font-bold shrink-0"
               >
                 Search
               </button>
             </div>
           </div>
 
+          {/* SIDE FEATURE CARDS */}
           <div className="grid gap-6">
             <FeatureCard
               title="Modern Student Housing"
               emoji="🎓"
               text="Verified PGs built for college life."
             />
+
             <FeatureCard
               title="AI Smart Search"
               emoji="🤖"
               text="Search by budget, food, safety and location."
             />
+
             <FeatureCard
               title="Owner Approval Flow"
               emoji="🔐"
@@ -85,6 +100,7 @@ function Home() {
           </div>
         </section>
 
+        {/* INFO BOXES */}
         <section className="grid md:grid-cols-4 gap-5 mt-8">
           <InfoBox icon="⚡" title="AI Ranking" />
           <InfoBox icon="✅" title="Verified Listings" />
@@ -92,9 +108,13 @@ function Home() {
           <InfoBox icon="🛡️" title="Safety First" />
         </section>
 
+        {/* WHY LIVYFY */}
         <section className="mt-20">
-          <p className="text-yellow-700 font-semibold">Why Livyfy?</p>
-          <h2 className="text-5xl font-bold mt-2 max-w-3xl">
+          <p className="text-yellow-700 font-semibold">
+            Why Livyfy?
+          </p>
+
+          <h2 className="text-4xl md:text-5xl font-bold mt-2 max-w-3xl leading-tight">
             Housing decisions should feel simple, safe and smart.
           </h2>
 
@@ -104,11 +124,13 @@ function Home() {
               title="For Students"
               img="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80"
             />
+
             <QuoteCard
               quote="Owners get genuine booking requests without sharing phone numbers publicly."
               title="For Owners"
               img="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80"
             />
+
             <QuoteCard
               quote="AI explains why a stay matches your budget, location and safety needs."
               title="For Trust"
@@ -117,6 +139,7 @@ function Home() {
           </div>
         </section>
 
+        {/* AI SECTION */}
         <section className="mt-20 grid lg:grid-cols-2 gap-8 items-center">
           <div className="rounded-[32px] overflow-hidden shadow-xl">
             <img
@@ -127,10 +150,14 @@ function Home() {
           </div>
 
           <div>
-            <p className="text-yellow-700 font-semibold">Explainable AI</p>
-            <h2 className="text-5xl font-bold mt-3">
+            <p className="text-yellow-700 font-semibold">
+              Explainable AI
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-bold mt-3 leading-tight">
               Not just search results. Real reasons.
             </h2>
+
             <p className="text-gray-700 text-lg mt-5 leading-relaxed">
               Livyfy ranks stays using filters and AI, then helps users understand why a PG fits their needs.
               Budget, verified status, location, food and safety become clear before booking.
@@ -145,22 +172,28 @@ function Home() {
           </div>
         </section>
 
+        {/* CTA */}
         <section className="mt-20 rounded-[36px] bg-black text-white p-10 md:p-14 overflow-hidden relative">
+
           <div className="absolute right-10 top-10 text-8xl opacity-20 animate-bounce">
             🏠
           </div>
 
-          <p className="text-yellow-300 font-semibold">Built for campus life</p>
-          <h2 className="text-5xl font-bold mt-3 max-w-3xl">
+          <p className="text-yellow-300 font-semibold">
+            Built for campus life
+          </p>
+
+          <h2 className="text-4xl md:text-5xl font-bold mt-3 max-w-3xl leading-tight">
             “Find a stay where you feel safe before you even visit.”
           </h2>
-          <p className="text-gray-300 mt-5 max-w-2xl text-lg">
+
+          <p className="text-gray-300 mt-5 max-w-2xl text-lg leading-relaxed">
             From search to booking approval, Livyfy removes confusion and builds trust between students and owners.
           </p>
 
           <button
-            onClick={() => navigate("/explore")}
-            className="mt-8 bg-yellow-400 text-black px-8 py-4 rounded-full font-bold"
+            onClick={() => navigate("/search?query=pg")}
+            className="mt-8 bg-yellow-400 text-black px-8 py-4 rounded-full font-bold hover:bg-yellow-300 transition"
           >
             Explore Verified Stays
           </button>
@@ -172,11 +205,22 @@ function Home() {
 
 function FeatureCard({ title, emoji, text }) {
   return (
-    <div className="relative overflow-hidden rounded-[28px] bg-white p-8 shadow-lg min-h-[175px] hover:scale-[1.02] transition">
-      <div className="absolute right-6 bottom-4 text-7xl opacity-80">{emoji}</div>
-      <h3 className="text-3xl font-bold max-w-xs">{title}</h3>
-      <p className="text-gray-600 mt-3 max-w-xs">{text}</p>
-      <button className="mt-6 w-12 h-12 rounded-full bg-black text-white text-xl">→</button>
+    <div className="relative overflow-hidden rounded-[28px] bg-white p-8 shadow-lg min-h-[175px] hover:scale-[1.02] transition duration-300">
+      <div className="absolute right-6 bottom-4 text-7xl opacity-80">
+        {emoji}
+      </div>
+
+      <h3 className="text-3xl font-bold max-w-xs">
+        {title}
+      </h3>
+
+      <p className="text-gray-600 mt-3 max-w-xs">
+        {text}
+      </p>
+
+      <button className="mt-6 w-12 h-12 rounded-full bg-black text-white text-xl">
+        →
+      </button>
     </div>
   );
 }
@@ -185,18 +229,31 @@ function InfoBox({ icon, title }) {
   return (
     <div className="bg-white rounded-3xl p-5 shadow-md flex items-center gap-3">
       <span className="text-2xl">{icon}</span>
-      <p className="font-semibold">{title}</p>
+
+      <p className="font-semibold">
+        {title}
+      </p>
     </div>
   );
 }
 
 function QuoteCard({ quote, title, img }) {
   return (
-    <div className="bg-white rounded-[30px] overflow-hidden shadow-lg hover:scale-[1.02] transition">
-      <img src={img} alt={title} className="w-full h-56 object-cover" />
+    <div className="bg-white rounded-[30px] overflow-hidden shadow-lg hover:scale-[1.02] transition duration-300">
+      <img
+        src={img}
+        alt={title}
+        className="w-full h-56 object-cover"
+      />
+
       <div className="p-6">
-        <p className="text-gray-500 text-sm">{title}</p>
-        <h3 className="text-2xl font-bold mt-3">“{quote}”</h3>
+        <p className="text-gray-500 text-sm">
+          {title}
+        </p>
+
+        <h3 className="text-2xl font-bold mt-3 leading-snug">
+          “{quote}”
+        </h3>
       </div>
     </div>
   );
@@ -205,8 +262,13 @@ function QuoteCard({ quote, title, img }) {
 function MiniStat({ number, label }) {
   return (
     <div className="bg-white rounded-3xl p-5 shadow-md">
-      <p className="text-3xl font-bold text-yellow-600">{number}</p>
-      <p className="text-gray-600 mt-1">{label}</p>
+      <p className="text-3xl font-bold text-yellow-600">
+        {number}
+      </p>
+
+      <p className="text-gray-600 mt-1">
+        {label}
+      </p>
     </div>
   );
 }
