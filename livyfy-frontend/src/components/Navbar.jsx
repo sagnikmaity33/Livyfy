@@ -1,7 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
   const role = localStorage.getItem("role");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("email");
+
+    alert("Logged out successfully");
+
+    navigate("/login");
+  };
 
   return (
     <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-yellow-400/20">
@@ -42,7 +53,7 @@ function Navbar() {
             Explore
           </Link>
 
-          {/* USER BOOKINGS */}
+          {/* USER */}
           {role === "USER" && (
             <Link
               to="/my-bookings"
@@ -52,7 +63,7 @@ function Navbar() {
             </Link>
           )}
 
-          {/* OWNER DASHBOARD */}
+          {/* OWNER */}
           {role === "OWNER" && (
             <Link
               to="/owner/dashboard"
@@ -62,7 +73,7 @@ function Navbar() {
             </Link>
           )}
 
-          {/* AUTH BUTTONS */}
+          {/* NOT LOGGED IN */}
           {!role && (
             <>
               <Link
@@ -79,6 +90,16 @@ function Navbar() {
                 Sign Up
               </Link>
             </>
+          )}
+
+          {/* LOGOUT */}
+          {role && (
+            <button
+              onClick={handleLogout}
+              className="bg-red-500/20 border border-red-400/20 text-red-300 px-5 py-2 rounded-full hover:bg-red-500/30 smooth"
+            >
+              Logout
+            </button>
           )}
 
         </div>
