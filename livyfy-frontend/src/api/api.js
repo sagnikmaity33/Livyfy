@@ -6,7 +6,7 @@ const API = axios.create({
 
 // 🔍 SEARCH
 export const hybridSearch = (payload) =>
-  API.post("/search/hybrid", payload);
+  API.post("/ai/recommend", payload);
 
 // 🤖 AI
 export const aiDebate = (payload) =>
