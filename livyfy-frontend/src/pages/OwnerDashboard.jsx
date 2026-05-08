@@ -5,19 +5,73 @@ import {
   getOwnerBookings,
   updateBookingStatus,
 } from "../api/api";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+} from "react-leaflet";
+
+
+function LocationPicker({ listing, setListing }) {
+
+  function MapClickHandler() {
+
+    useMapEvents({
+      click(e) {
+
+        setListing((prev) => ({
+          ...prev,
+          latitude: e.latlng.lat,
+          longitude: e.latlng.lng,
+        }));
+      },
+    });
+
+    return null;
+  }
+
+  return (
+    <MapContainer
+      center={[22.5726, 88.3639]}
+      zoom={11}
+      className="h-[400px] w-full rounded-3xl overflow-hidden mt-5 z-0"
+    >
+
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <MapClickHandler />
+
+      {listing.latitude && listing.longitude && (
+        <Marker
+          position={[
+            listing.latitude,
+            listing.longitude,
+          ]}
+        />
+      )}
+    </MapContainer>
+  );
+}
 
 function OwnerDashboard() {
   const [activeTab, setActiveTab] = useState("bookings");
   const [bookings, setBookings] = useState([]);
 
-  const [listing, setListing] = useState({
-    title: "",
-    description: "",
-    price: "",
-    location: "",
-    amenities: "",
-    ownerName: "",
-  });
+const [listing, setListing] = useState({
+  title: "",
+  description: "",
+  price: "",
+  location: "",
+  amenities: "",
+  ownerName: "",
+
+  latitude: null,
+  longitude: null,
+});
 
   const loadBookings = () => {
     getOwnerBookings()
@@ -207,6 +261,27 @@ function OwnerDashboard() {
               value={listing.description}
               onChange={(e) => setListing({ ...listing, description: e.target.value })}
             />
+
+            <div className="mt-6">
+  <p className="text-yellow-300 mb-3 font-semibold">
+    Select Exact Property Location
+  </p>
+
+  <LocationPicker
+    listing={listing}
+    setListing={setListing}
+  />
+
+  {listing.latitude && (
+    <p className="text-sm text-gray-400 mt-3">
+      Selected:
+      {" "}
+      {listing.latitude.toFixed(5)},
+      {" "}
+      {listing.longitude.toFixed(5)}
+    </p>
+  )}
+</div>
 
             <button
               onClick={handleSubmitListing}

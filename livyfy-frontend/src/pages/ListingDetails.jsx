@@ -2,6 +2,12 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { getListingById, createBooking } from "../api/api";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+} from "react-leaflet";
+
 
 function ListingDetails() {
   const { id } = useParams();
@@ -83,7 +89,36 @@ function ListingDetails() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
+              {listing.latitude && listing.longitude && (
+  <div className="mt-6">
 
+    <p className="text-yellow-300 mb-3 font-semibold">
+      Property Location
+    </p>
+
+    <MapContainer
+      center={[
+        listing.latitude,
+        listing.longitude,
+      ]}
+      zoom={15}
+      className="h-[350px] w-full rounded-3xl overflow-hidden z-0"
+    >
+
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <Marker
+        position={[
+          listing.latitude,
+          listing.longitude,
+        ]}
+      />
+    </MapContainer>
+  </div>
+)}
               <input
                 className="w-full bg-black/30 border border-yellow-400/20 px-4 py-3 rounded-2xl outline-none"
                 placeholder="Contact phone"
