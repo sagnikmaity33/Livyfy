@@ -1,8 +1,16 @@
 services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
   backend:
     build: ./Livyfy
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - db
       - ai-service
@@ -23,7 +31,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  ai-service:  
+  ai-service:
     build: ./ai-service
     ports:
       - "8000:8000"
@@ -32,36 +40,25 @@ services:
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 
-volumes:  
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+volumes:
   postgres_data:
   chroma_data:
-
-
-# services:
-#   backend:
-#     build: ./Livyfy
-#     ports:
-#       - "8080:8080"
-#     depends_on:
-#       - db  # ← Remove ai-service dependency
-#     environment:
-#       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/housing_db
-#       SPRING_DATASOURCE_USERNAME: postgres
-#       SPRING_DATASOURCE_PASSWORD: password
-#     extra_hosts:
-#       - "host.docker.internal:host-gateway"
-
-#   db:
-#     image: postgres:15
-#     restart: always
-#     environment:
-#       POSTGRES_DB: housing_db
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: password
-#     ports:
-#       - "5432:5432"
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-
-# volumes:
-#   postgres_data:
